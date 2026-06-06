@@ -1,0 +1,44 @@
+@model IEnumerable<Enrollment>
+
+@{
+    ViewData["Title"] = "Học phần của tôi";
+}
+
+<h1 class="h3 mb-4">Học phần của tôi</h1>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Bạn chưa đăng ký học phần nào.</div>
+}
+else
+{
+    <div class="table-responsive bg-white border rounded">
+        <table class="table table-bordered table-hover align-middle mb-0 data-grid-view">
+            <thead class="table-light">
+                <tr>
+                    <th>Học phần</th>
+                    <th>Số tín chỉ</th>
+                    <th>Giảng viên</th>
+                    <th>Ngày đăng ký</th>
+                    <th class="text-end">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var enrollment in Model)
+                {
+                    <tr>
+                        <td>@enrollment.Course?.Name</td>
+                        <td>@enrollment.Course?.Credits</td>
+                        <td>@enrollment.Course?.Lecturer</td>
+                        <td>@enrollment.EnrollDate.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="text-end">
+                            <form asp-controller="Enroll" asp-action="Cancel" asp-route-courseId="@enrollment.CourseId" method="post">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Hủy đăng ký</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

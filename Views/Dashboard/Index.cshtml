@@ -1,0 +1,215 @@
+@model DashboardViewModel
+
+@{
+    ViewData["Title"] = "Thống kê quản trị";
+    var maxCategoryCourses = Math.Max(1, Model.CoursesByCategory.Any() ? Model.CoursesByCategory.Max(item => item.CourseCount) : 1);
+    var maxCourseEnrollments = Math.Max(1, Model.TopCourses.Any() ? Model.TopCourses.Max(item => item.EnrollmentCount) : 1);
+    var categoryChartHeight = Math.Max(220, Model.CoursesByCategory.Count * 54 + 42);
+    var topCourseChartHeight = Math.Max(220, Model.TopCourses.Count * 54 + 42);
+    var chartColors = new[] { "#2563eb", "#16a34a", "#f59e0b", "#dc2626", "#7c3aed", "#0f766e" };
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Thống kê quản trị</h1>
+        <p class="text-muted mb-0">Theo dõi số lượng học phần, sinh viên và lượt đăng ký trong hệ thống.</p>
+    </div>
+    <a class="btn btn-outline-primary" asp-controller="AdminCourses" asp-action="Index">Quản lý học phần</a>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-3">
+        <div class="bg-white border rounded p-4 stat-tile">
+            <div class="text-muted">Tổng số học phần</div>
+            <div class="display-6 fw-semibold">@Model.TotalCourses</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="bg-white border rounded p-4 stat-tile">
+            <div class="text-muted">Tổng số danh mục</div>
+            <div class="display-6 fw-semibold">@Model.TotalCategories</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="bg-white border rounded p-4 stat-tile">
+            <div class="text-muted">Tổng số sinh viên</div>
+            <div class="display-6 fw-semibold">@Model.TotalStudents</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="bg-white border rounded p-4 stat-tile">
+            <div class="text-muted">Tổng số lượt đăng ký</div>
+            <div class="display-6 fw-semibold">@Model.TotalEnrollments</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-1">
+    <div class="col-lg-6">
+        <div class="bg-white border rounded p-4 h-100">
+            <h2 class="h5 mb-3">Biểu đồ học phần theo danh mục</h2>
+            @if (!Model.CoursesByCategory.Any())
+            {
+                <div class="alert alert-info mb-0">Chưa có danh mục học phần.</div>
+            }
+            else
+            {
+                <svg class="dashboard-svg-chart" viewBox="0 0 720 @categoryChartHeight" role="img" aria-label="Biểu đồ học phần theo danh mục">
+                    <line x1="210" y1="18" x2="210" y2="@(categoryChartHeight - 24)" class="dashboard-axis" />
+                    @for (var i = 0; i < Model.CoursesByCategory.Count; i++)
+                    {
+                        var item = Model.CoursesByCategory[i];
+                        var y = 32 + i * 54;
+                        var barWidth = item.CourseCount * 430 / maxCategoryCourses;
+                        var color = chartColors[i % chartColors.Length];
+                        var label = item.CategoryName.Length > 22 ? item.CategoryName.Substring(0, 22) + "..." : item.CategoryName;
+
+                        @Html.Raw($"<text x=\"18\" y=\"{y + 20}\" class=\"dashboard-chart-label\">{System.Net.WebUtility.HtmlEncode(label)}</text>")
+                        <rect x="210" y="@y" width="@barWidth" height="28" rx="6" fill="@color"></rect>
+                        @Html.Raw($"<text x=\"{220 + barWidth}\" y=\"{y + 19}\" class=\"dashboard-chart-value\">{item.CourseCount}</text>")
+                    }
+                </svg>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="bg-white border rounded p-4 h-100">
+            <h2 class="h5 mb-3">Biểu đồ lượt đăng ký theo học phần</h2>
+            @if (!Model.TopCourses.Any())
+            {
+                <div class="alert alert-info mb-0">Chưa có học phần nào.</div>
+            }
+            else
+            {
+                <svg class="dashboard-svg-chart" viewBox="0 0 720 @topCourseChartHeight" role="img" aria-label="Biểu đồ lượt đăng ký theo học phần">
+                    <line x1="250" y1="18" x2="250" y2="@(topCourseChartHeight - 24)" class="dashboard-axis" />
+                    @for (var i = 0; i < Model.TopCourses.Count; i++)
+                    {
+                        var item = Model.TopCourses[i];
+                        var y = 32 + i * 54;
+                        var barWidth = item.EnrollmentCount * 390 / maxCourseEnrollments;
+                        var color = chartColors[(i + 2) % chartColors.Length];
+                        var label = item.CourseName.Length > 26 ? item.CourseName.Substring(0, 26) + "..." : item.CourseName;
+
+                        @Html.Raw($"<text x=\"18\" y=\"{y + 20}\" class=\"dashboard-chart-label\">{System.Net.WebUtility.HtmlEncode(label)}</text>")
+                        <rect x="250" y="@y" width="@barWidth" height="28" rx="6" fill="@color"></rect>
+                        @Html.Raw($"<text x=\"{260 + barWidth}\" y=\"{y + 19}\" class=\"dashboard-chart-value\">{item.EnrollmentCount}</text>")
+                    }
+                </svg>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-1">
+    <div class="col-lg-6">
+        <div class="bg-white border rounded p-4 h-100">
+            <h2 class="h5 mb-3">Số học phần theo danh mục</h2>
+            @if (!Model.CoursesByCategory.Any())
+            {
+                <div class="alert alert-info mb-0">Chưa có danh mục học phần.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle mb-0 data-grid-view">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Danh mục</th>
+                                <th>Số học phần</th>
+                                <th>Tỉ lệ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.CoursesByCategory)
+                            {
+                                var percent = item.CourseCount * 100 / maxCategoryCourses;
+                                <tr>
+                                    <td>@item.CategoryName</td>
+                                    <td>@item.CourseCount</td>
+                                    <td class="dashboard-chart-cell">
+                                        <div class="progress dashboard-progress">
+                                            <div class="progress-bar" role="progressbar" style="width: @percent%;" aria-valuenow="@percent" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="bg-white border rounded p-4 h-100">
+            <h2 class="h5 mb-3">Top học phần được đăng ký nhiều</h2>
+            @if (!Model.TopCourses.Any())
+            {
+                <div class="alert alert-info mb-0">Chưa có học phần nào.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle mb-0 data-grid-view">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Học phần</th>
+                                <th>Lượt đăng ký</th>
+                                <th>Tỉ lệ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.TopCourses)
+                            {
+                                var percent = item.EnrollmentCount * 100 / maxCourseEnrollments;
+                                <tr>
+                                    <td>@item.CourseName</td>
+                                    <td>@item.EnrollmentCount</td>
+                                    <td class="dashboard-chart-cell">
+                                        <div class="progress dashboard-progress">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: @percent%;" aria-valuenow="@percent" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="bg-white border rounded p-4 mt-4">
+    <h2 class="h5 mb-3">Lượt đăng ký gần đây</h2>
+    @if (!Model.RecentEnrollments.Any())
+    {
+        <div class="alert alert-info mb-0">Chưa có lượt đăng ký học phần nào.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle mb-0 data-grid-view">
+                <thead class="table-light">
+                    <tr>
+                        <th>Sinh viên</th>
+                        <th>Học phần</th>
+                        <th>Ngày đăng ký</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.RecentEnrollments)
+                    {
+                        <tr>
+                            <td>@item.StudentName</td>
+                            <td>@item.CourseName</td>
+                            <td>@item.EnrollDate.ToString("dd/MM/yyyy HH:mm")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

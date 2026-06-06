@@ -1,0 +1,43 @@
+@model IEnumerable<Course>
+
+@{
+    ViewData["Title"] = "Quản lý học phần";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Quản lý học phần</h1>
+    <a class="btn btn-primary" asp-action="Create">Thêm học phần</a>
+</div>
+
+<div class="table-responsive bg-white border rounded">
+    <table class="table table-bordered table-hover align-middle mb-0 data-grid-view">
+        <thead class="table-light">
+            <tr>
+                <th>Hình ảnh</th>
+                <th>Tên học phần</th>
+                <th>Số tín chỉ</th>
+                <th>Giảng viên</th>
+                <th>Danh mục</th>
+                <th class="text-end">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var course in Model)
+            {
+                <tr>
+                    <td class="text-center">
+                        <img src="@course.Image" alt="@course.Name" class="course-table-image" onerror="this.src='/images/course-default.svg'" />
+                    </td>
+                    <td>@course.Name</td>
+                    <td>@course.Credits</td>
+                    <td>@course.Lecturer</td>
+                    <td>@course.Category?.Name</td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@course.Id">Sửa</a>
+                        <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@course.Id">Xóa</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

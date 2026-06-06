@@ -1,0 +1,100 @@
+@model CourseListViewModel
+
+@{
+    ViewData["Title"] = "Danh sách học phần";
+}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">Danh sách học phần</h1>
+        <p class="text-muted mb-0">Tìm kiếm, xem thông tin và đăng ký học phần.</p>
+    </div>
+    @if (User.IsInRole("Admin"))
+    {
+        <a class="btn btn-primary" asp-controller="AdminCourses" asp-action="Create">Thêm học phần</a>
+    }
+</div>
+
+<form class="row g-2 mb-4" method="get" asp-controller="Home" asp-action="Index">
+    <div class="col-md-10">
+        <input class="form-control" type="search" name="search" value="@Model.Search" placeholder="Tìm theo tên học phần" />
+    </div>
+    <div class="col-md-2 d-grid">
+        <button class="btn btn-outline-primary" type="submit">Tìm kiếm</button>
+    </div>
+</form>
+
+@if (!Model.Courses.Any())
+{
+    <div class="alert alert-info">Không tìm thấy học phần phù hợp.</div>
+}
+else
+{
+    <div class="table-responsive bg-white border rounded">
+        <table class="table table-bordered table-hover align-middle mb-0 data-grid-view">
+            <thead class="table-light">
+                <tr>
+                    <th>Hình ảnh</th>
+                    <th>Tên học phần</th>
+                    <th>Số tín chỉ</th>
+                    <th>Giảng viên</th>
+                    <th>Danh mục</th>
+                    <th class="text-center">Đăng ký</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var course in Model.Courses)
+                {
+                    <tr>
+                        <td class="text-center">
+                            <img src="@course.Image" class="course-table-image" alt="@course.Name" onerror="this.src='/images/course-default.svg'" />
+                        </td>
+                        <td class="fw-semibold">@course.Name</td>
+                        <td>@course.Credits</td>
+                        <td>@course.Lecturer</td>
+                        <td>@course.Category?.Name</td>
+                        <td class="text-center">
+                            @if (User.IsInRole("STUDENT"))
+                            {
+                                if (Model.EnrolledCourseIds.Contains(course.Id))
+                                {
+                                    <form asp-controller="Enroll" asp-action="Cancel" asp-route-courseId="@course.Id" method="post">
+                                        <button class="btn btn-sm btn-outline-danger" type="submit">Hủy đăng ký</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-controller="Enroll" asp-action="Create" asp-route-courseId="@course.Id" method="post">
+                                        <button class="btn btn-sm btn-success" type="submit">Đăng ký</button>
+                                    </form>
+                                }
+                            }
+                            else if (User.Identity?.IsAuthenticated != true)
+                            {
+                                <a class="btn btn-sm btn-outline-primary" asp-controller="Account" asp-action="Login">Đăng nhập để đăng ký</a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Không áp dụng</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@if (Model.TotalPages > 1)
+{
+    <nav class="mt-4" aria-label="Phân trang học phần">
+        <ul class="pagination justify-content-center">
+            @for (var i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                    <a class="page-link" asp-controller="Home" asp-action="Index" asp-route-page="@i" asp-route-search="@Model.Search">@i</a>
+                </li>
+            }
+        </ul>
+    </nav>
+}

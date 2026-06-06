@@ -1,0 +1,99 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+  background: #f8fafc;
+}
+
+.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+  color: var(--bs-secondary-color);
+  text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+  text-align: start;
+}
+
+.course-image {
+  height: 180px;
+  object-fit: cover;
+  background: #e2e8f0;
+}
+
+.course-table-image {
+  width: 88px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  background: #e2e8f0;
+}
+
+.course-card {
+  height: 100%;
+}
+
+.data-grid-view th,
+.data-grid-view td {
+  vertical-align: middle;
+}
+
+.data-grid-view thead th {
+  white-space: nowrap;
+}
+
+.stat-tile {
+  border-left: 4px solid #0d6efd;
+}
+
+.dashboard-chart-cell {
+  min-width: 160px;
+}
+
+.dashboard-progress {
+  height: 14px;
+}
+
+.dashboard-svg-chart {
+  width: 100%;
+  height: auto;
+  min-height: 220px;
+}
+
+.dashboard-axis {
+  stroke: #cbd5e1;
+  stroke-width: 2;
+}
+
+.dashboard-chart-label {
+  fill: #334155;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.dashboard-chart-value {
+  fill: #0f172a;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.table img {
+  max-width: 96px;
+}
