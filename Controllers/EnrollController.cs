@@ -46,6 +46,8 @@ public class EnrollController : Controller
             await _context.SaveChangesAsync();
         }
 
+        await UpdateEnrollmentSessionCountAsync(userId);
+
         return RedirectToAction("Index", "Home");
     }
 
@@ -69,6 +71,8 @@ public class EnrollController : Controller
             await _context.SaveChangesAsync();
         }
 
+        await UpdateEnrollmentSessionCountAsync(userId);
+
         return RedirectToAction("Index", "Home");
     }
 
@@ -91,5 +95,13 @@ public class EnrollController : Controller
             .ToListAsync();
 
         return View(enrollments);
+    }
+
+    private async Task UpdateEnrollmentSessionCountAsync(string userId)
+    {
+        var enrolledCourseCount = await _context.Enrollments
+            .CountAsync(enrollment => enrollment.UserId == userId);
+
+        HttpContext.Session.SetInt32(SessionKeys.EnrolledCourseCount, enrolledCourseCount);
     }
 }

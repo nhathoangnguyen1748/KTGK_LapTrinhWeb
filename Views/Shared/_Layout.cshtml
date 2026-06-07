@@ -1,5 +1,12 @@
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
+@{
+    var sessionUserName = Context.Session.GetString(SessionKeys.UserName);
+    var sessionRole = Context.Session.GetString(SessionKeys.Role);
+    var sessionLoginTime = Context.Session.GetString(SessionKeys.LoginTime);
+    var sessionEnrollmentCount = Context.Session.GetInt32(SessionKeys.EnrolledCourseCount) ?? 0;
+    var sessionRoleText = sessionRole == "STUDENT" ? "Sinh viên" : sessionRole;
+}
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -41,11 +48,21 @@
                             </li>
                         }
                     </ul>
-                    <ul class="navbar-nav">
+                    <ul class="navbar-nav align-items-sm-center gap-sm-2">
                         @if (SignInManager.IsSignedIn(User))
                         {
                             <li class="nav-item">
-                                <span class="nav-link text-dark">@User.Identity?.Name</span>
+                                <span class="navbar-text text-dark session-state">
+                                    Phiên: @(sessionUserName ?? User.Identity?.Name) | @sessionRoleText
+                                    @if (User.IsInRole("STUDENT"))
+                                    {
+                                        <span>| Đã đăng ký: @sessionEnrollmentCount</span>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(sessionLoginTime))
+                                    {
+                                        <span>| @sessionLoginTime</span>
+                                    }
+                                </span>
                             </li>
                             <li class="nav-item">
                                 <form asp-controller="Account" asp-action="Logout" method="post">

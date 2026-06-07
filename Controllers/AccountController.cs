@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using NguyenHoangNhat_1549_KiemTra.Data;
 using NguyenHoangNhat_1549_KiemTra.ViewModels;
 
@@ -12,11 +13,16 @@ public class AccountController : Controller
 {
     private readonly SignInManager<IdentityUser> _signInManager;
     private readonly UserManager<IdentityUser> _userManager;
+    private readonly ApplicationDbContext _context;
 
-    public AccountController(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager)
+    public AccountController(
+        SignInManager<IdentityUser> signInManager,
+        UserManager<IdentityUser> userManager,
+        ApplicationDbContext context)
     {
         _signInManager = signInManager;
         _userManager = userManager;
+        _context = context;
     }
 
     [HttpGet("register")]
@@ -47,6 +53,7 @@ public class AccountController : Controller
         {
             await _userManager.AddToRoleAsync(user, SeedData.StudentRole);
             await _signInManager.SignInAsync(user, isPersistent: false);
+            await SaveUserSessionAsync(user);
             return Redirect("/home");
         }
 
@@ -81,6 +88,13 @@ public class AccountController : Controller
 
         if (result.Succeeded)
         {
+            var user = await _userManager.FindByNameAsync(model.UserName.Trim());
+
+            if (user is not null)
+            {
+                await SaveUserSessionAsync(user);
+            }
+
             return RedirectToLocal(model.ReturnUrl);
         }
 
@@ -93,6 +107,7 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
     {
+        HttpContext.Session.Clear();
         await _signInManager.SignOutAsync();
         return Redirect("/home");
     }
@@ -131,6 +146,13 @@ public class AccountController : Controller
 
         if (externalResult.Succeeded)
         {
+            var signedInUser = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+
+            if (signedInUser is not null)
+            {
+                await SaveUserSessionAsync(signedInUser);
+            }
+
             return RedirectToLocal(returnUrl);
         }
 
@@ -181,6 +203,7 @@ public class AccountController : Controller
         }
 
         await _signInManager.SignInAsync(user, isPersistent: false);
+        await SaveUserSessionAsync(user);
         return RedirectToLocal(returnUrl);
     }
 
@@ -207,5 +230,19 @@ public class AccountController : Controller
         }
 
         return Redirect("/home");
+    }
+
+    private async Task SaveUserSessionAsync(IdentityUser user)
+    {
+        var roles = await _userManager.GetRolesAsync(user);
+        var role = roles.FirstOrDefault() ?? "Người dùng";
+        var enrolledCourseCount = await _context.Enrollments
+            .CountAsync(enrollment => enrollment.UserId == user.Id);
+
+        HttpContext.Session.SetString(SessionKeys.UserId, user.Id);
+        HttpContext.Session.SetString(SessionKeys.UserName, user.UserName ?? string.Empty);
+        HttpContext.Session.SetString(SessionKeys.Role, role);
+        HttpContext.Session.SetString(SessionKeys.LoginTime, DateTime.Now.ToString("dd/MM/yyyy HH:mm"));
+        HttpContext.Session.SetInt32(SessionKeys.EnrolledCourseCount, enrolledCourseCount);
     }
 }
