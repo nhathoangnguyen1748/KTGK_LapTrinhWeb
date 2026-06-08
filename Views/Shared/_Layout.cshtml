@@ -5,6 +5,7 @@
     var sessionRole = Context.Session.GetString(SessionKeys.Role);
     var sessionLoginTime = Context.Session.GetString(SessionKeys.LoginTime);
     var sessionEnrollmentCount = Context.Session.GetInt32(SessionKeys.EnrolledCourseCount) ?? 0;
+    var pendingCourseCount = PendingEnrollmentStore.GetPendingCourseIds(Context).Count;
     var sessionRoleText = sessionRole == "STUDENT" ? "Sinh viên" : sessionRole;
 }
 <!DOCTYPE html>
@@ -72,6 +73,12 @@
                         }
                         else
                         {
+                            @if (pendingCourseCount > 0)
+                            {
+                                <li class="nav-item">
+                                    <span class="navbar-text text-dark session-state">Đăng ký tạm: @pendingCourseCount</span>
+                                </li>
+                            }
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Đăng nhập</a>
                             </li>

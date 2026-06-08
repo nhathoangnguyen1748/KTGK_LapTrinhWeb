@@ -64,6 +64,7 @@ namespace NguyenHoangNhat_1549_KiemTra.Controllers
                 .ToListAsync();
 
             var enrolledCourseIds = new HashSet<int>();
+            var pendingCourseIds = PendingEnrollmentStore.GetPendingCourseIds(HttpContext);
 
             if (User.Identity?.IsAuthenticated == true && User.IsInRole(SeedData.StudentRole))
             {
@@ -84,7 +85,8 @@ namespace NguyenHoangNhat_1549_KiemTra.Controllers
                 Search = search,
                 CurrentPage = page,
                 TotalPages = totalPages,
-                EnrolledCourseIds = enrolledCourseIds
+                EnrolledCourseIds = enrolledCourseIds,
+                PendingCourseIds = pendingCourseIds
             };
         }
     }

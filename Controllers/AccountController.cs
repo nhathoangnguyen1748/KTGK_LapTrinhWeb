@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NguyenHoangNhat_1549_KiemTra.Data;
+using NguyenHoangNhat_1549_KiemTra.Models;
 using NguyenHoangNhat_1549_KiemTra.ViewModels;
 
 namespace NguyenHoangNhat_1549_KiemTra.Controllers;
@@ -53,6 +54,7 @@ public class AccountController : Controller
         {
             await _userManager.AddToRoleAsync(user, SeedData.StudentRole);
             await _signInManager.SignInAsync(user, isPersistent: false);
+            await SyncPendingCoursesAsync(user);
             await SaveUserSessionAsync(user);
             return Redirect("/home");
         }
@@ -92,6 +94,7 @@ public class AccountController : Controller
 
             if (user is not null)
             {
+                await SyncPendingCoursesAsync(user);
                 await SaveUserSessionAsync(user);
             }
 
@@ -150,6 +153,7 @@ public class AccountController : Controller
 
             if (signedInUser is not null)
             {
+                await SyncPendingCoursesAsync(signedInUser);
                 await SaveUserSessionAsync(signedInUser);
             }
 
@@ -203,6 +207,7 @@ public class AccountController : Controller
         }
 
         await _signInManager.SignInAsync(user, isPersistent: false);
+        await SyncPendingCoursesAsync(user);
         await SaveUserSessionAsync(user);
         return RedirectToLocal(returnUrl);
     }
@@ -244,5 +249,43 @@ public class AccountController : Controller
         HttpContext.Session.SetString(SessionKeys.Role, role);
         HttpContext.Session.SetString(SessionKeys.LoginTime, DateTime.Now.ToString("dd/MM/yyyy HH:mm"));
         HttpContext.Session.SetInt32(SessionKeys.EnrolledCourseCount, enrolledCourseCount);
+    }
+
+    private async Task SyncPendingCoursesAsync(IdentityUser user)
+    {
+        if (!await _userManager.IsInRoleAsync(user, SeedData.StudentRole))
+        {
+            return;
+        }
+
+        var pendingCourseIds = PendingEnrollmentStore.GetPendingCourseIds(HttpContext);
+
+        if (pendingCourseIds.Count == 0)
+        {
+            return;
+        }
+
+        var validCourseIds = await _context.Courses
+            .Where(course => pendingCourseIds.Contains(course.Id))
+            .Select(course => course.Id)
+            .ToListAsync();
+
+        var enrolledCourseIds = await _context.Enrollments
+            .Where(enrollment => enrollment.UserId == user.Id && validCourseIds.Contains(enrollment.CourseId))
+            .Select(enrollment => enrollment.CourseId)
+            .ToListAsync();
+
+        foreach (var courseId in validCourseIds.Except(enrolledCourseIds))
+        {
+            _context.Enrollments.Add(new Enrollment
+            {
+                UserId = user.Id,
+                CourseId = courseId,
+                EnrollDate = DateTime.Now
+            });
+        }
+
+        await _context.SaveChangesAsync();
+        PendingEnrollmentStore.Clear(HttpContext);
     }
 }

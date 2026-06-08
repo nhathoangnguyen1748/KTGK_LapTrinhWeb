@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Danh sách học phần";
+    var pendingCourseCount = Model.PendingCourseIds.Count;
 }
 
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
@@ -14,6 +15,16 @@
         <a class="btn btn-primary" asp-controller="AdminCourses" asp-action="Create">Thêm học phần</a>
     }
 </div>
+
+@if (User.Identity?.IsAuthenticated != true && pendingCourseCount > 0)
+{
+    <div class="alert alert-warning d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+        <div>
+            Bạn đã chọn tạm <strong>@pendingCourseCount</strong> học phần. Danh sách này đang được lưu bằng Session/Cookie và sẽ tự đồng bộ vào database sau khi đăng nhập.
+        </div>
+        <a class="btn btn-sm btn-primary" asp-controller="Account" asp-action="Login">Đăng nhập để đồng bộ</a>
+    </div>
+}
 
 <form class="row g-2 mb-4" method="get" asp-controller="Home" asp-action="Index">
     <div class="col-md-10">
@@ -45,6 +56,9 @@ else
             <tbody>
                 @foreach (var course in Model.Courses)
                 {
+                    var isEnrolled = Model.EnrolledCourseIds.Contains(course.Id);
+                    var isPending = Model.PendingCourseIds.Contains(course.Id);
+
                     <tr>
                         <td class="text-center">
                             <img src="@course.Image" class="course-table-image" alt="@course.Name" onerror="this.src='/images/course-default.svg'" />
@@ -56,7 +70,7 @@ else
                         <td class="text-center">
                             @if (User.IsInRole("STUDENT"))
                             {
-                                if (Model.EnrolledCourseIds.Contains(course.Id))
+                                if (isEnrolled)
                                 {
                                     <form asp-controller="Enroll" asp-action="Cancel" asp-route-courseId="@course.Id" method="post">
                                         <button class="btn btn-sm btn-outline-danger" type="submit">Hủy đăng ký</button>
@@ -71,7 +85,19 @@ else
                             }
                             else if (User.Identity?.IsAuthenticated != true)
                             {
-                                <a class="btn btn-sm btn-outline-primary" asp-controller="Account" asp-action="Login">Đăng nhập để đăng ký</a>
+                                if (isPending)
+                                {
+                                    <form asp-controller="Enroll" asp-action="Cancel" asp-route-courseId="@course.Id" method="post">
+                                        <button class="btn btn-sm btn-outline-danger" type="submit">Hủy đăng ký tạm</button>
+                                    </form>
+                                    <div class="small text-muted mt-1">Đã lưu trong Session/Cookie</div>
+                                }
+                                else
+                                {
+                                    <form asp-controller="Enroll" asp-action="Create" asp-route-courseId="@course.Id" method="post">
+                                        <button class="btn btn-sm btn-outline-success" type="submit">Đăng ký tạm</button>
+                                    </form>
+                                }
                             }
                             else
                             {

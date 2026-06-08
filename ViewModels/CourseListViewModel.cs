@@ -9,4 +9,5 @@ public class CourseListViewModel
     public int CurrentPage { get; set; }
     public int TotalPages { get; set; }
     public HashSet<int> EnrolledCourseIds { get; set; } = [];
+    public HashSet<int> PendingCourseIds { get; set; } = [];
 }

@@ -7,7 +7,6 @@ using NguyenHoangNhat_1549_KiemTra.Models;
 
 namespace NguyenHoangNhat_1549_KiemTra.Controllers;
 
-[Authorize(Roles = "STUDENT")]
 [Route("enroll")]
 public class EnrollController : Controller
 {
@@ -24,29 +23,36 @@ public class EnrollController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(int courseId)
     {
-        var userId = _userManager.GetUserId(User);
-
-        if (string.IsNullOrEmpty(userId))
-        {
-            return Challenge();
-        }
-
         var courseExists = await _context.Courses.AnyAsync(c => c.Id == courseId);
-        var alreadyEnrolled = await _context.Enrollments.AnyAsync(e => e.UserId == userId && e.CourseId == courseId);
 
-        if (courseExists && !alreadyEnrolled)
+        if (!courseExists)
         {
-            _context.Enrollments.Add(new Enrollment
-            {
-                UserId = userId,
-                CourseId = courseId,
-                EnrollDate = DateTime.Now
-            });
-
-            await _context.SaveChangesAsync();
+            return RedirectToAction("Index", "Home");
         }
 
-        await UpdateEnrollmentSessionCountAsync(userId);
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            if (!User.IsInRole(SeedData.StudentRole))
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var userId = _userManager.GetUserId(User);
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Challenge();
+            }
+
+            await EnrollCourseAsync(userId, courseId);
+            await UpdateEnrollmentSessionCountAsync(userId);
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        var pendingCourseIds = PendingEnrollmentStore.GetPendingCourseIds(HttpContext);
+        pendingCourseIds.Add(courseId);
+        PendingEnrollmentStore.SavePendingCourseIds(HttpContext, pendingCourseIds);
 
         return RedirectToAction("Index", "Home");
     }
@@ -55,27 +61,37 @@ public class EnrollController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Cancel(int courseId)
     {
-        var userId = _userManager.GetUserId(User);
-
-        if (string.IsNullOrEmpty(userId))
+        if (User.Identity?.IsAuthenticated == true && User.IsInRole(SeedData.StudentRole))
         {
-            return Challenge();
+            var userId = _userManager.GetUserId(User);
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Challenge();
+            }
+
+            var enrollment = await _context.Enrollments
+                .FirstOrDefaultAsync(e => e.UserId == userId && e.CourseId == courseId);
+
+            if (enrollment is not null)
+            {
+                _context.Enrollments.Remove(enrollment);
+                await _context.SaveChangesAsync();
+            }
+
+            await UpdateEnrollmentSessionCountAsync(userId);
+
+            return RedirectToAction("Index", "Home");
         }
 
-        var enrollment = await _context.Enrollments
-            .FirstOrDefaultAsync(e => e.UserId == userId && e.CourseId == courseId);
-
-        if (enrollment is not null)
-        {
-            _context.Enrollments.Remove(enrollment);
-            await _context.SaveChangesAsync();
-        }
-
-        await UpdateEnrollmentSessionCountAsync(userId);
+        var pendingCourseIds = PendingEnrollmentStore.GetPendingCourseIds(HttpContext);
+        pendingCourseIds.Remove(courseId);
+        PendingEnrollmentStore.SavePendingCourseIds(HttpContext, pendingCourseIds);
 
         return RedirectToAction("Index", "Home");
     }
 
+    [Authorize(Roles = "STUDENT")]
     [HttpGet("my-courses")]
     public async Task<IActionResult> MyCourses()
     {
@@ -95,6 +111,26 @@ public class EnrollController : Controller
             .ToListAsync();
 
         return View(enrollments);
+    }
+
+    private async Task EnrollCourseAsync(string userId, int courseId)
+    {
+        var alreadyEnrolled = await _context.Enrollments
+            .AnyAsync(e => e.UserId == userId && e.CourseId == courseId);
+
+        if (alreadyEnrolled)
+        {
+            return;
+        }
+
+        _context.Enrollments.Add(new Enrollment
+        {
+            UserId = userId,
+            CourseId = courseId,
+            EnrollDate = DateTime.Now
+        });
+
+        await _context.SaveChangesAsync();
     }
 
     private async Task UpdateEnrollmentSessionCountAsync(string userId)
