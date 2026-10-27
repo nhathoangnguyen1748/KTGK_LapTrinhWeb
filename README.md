@@ -1,172 +1,133 @@
-# KTGK_LapTrinhWeb - Đồ Án ASP.NET Core MVC
+# KTGK_LapTrinhWeb - Dự Án ASP.NET Core MVC
 
-Dự án Kiểm tra giữa kỳ (KTGK) môn **Lập trình Web**, được xây dựng trên nền tảng **ASP.NET Core MVC**. Dự án mô phỏng ứng dụng web hoàn chỉnh với mô hình kiến trúc MVC, tích hợp giao diện người dùng tương tác và xử lý dữ liệu backend.
+[![.NET](https://img.shields.io/badge/.NET-ASP.NET%20Core%20MVC-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
----
-
-## 📌 Mục lục
-- [Giới thiệu](#-giới-thiệu)
-- [Công nghệ sử dụng](#-công-nghệ-sử-dụng)
-- [Cấu trúc thư mục & Kiến trúc MVC](#-cấu-trúc-thư-mục--kiến-trúc-mvc)
-- [Yêu cầu hệ thống](#-yêu-cầu-hệ-thống)
-- [Hướng dẫn cài đặt và chạy đồ án](#-hướng-dẫn-cài-đặt-và-chạy-đồ-án)
-  - [1. Clone mã nguồn](#1-clone-mã-nguồn)
-  - [2. Cấu hình chuỗi kết nối cơ sở dữ liệu](#2-cấu-hình-chuỗi-kết-nối-cơ-sở-dữ-liệu)
-  - [3. Khởi tạo Cơ sở Dữ liệu (Migrations)](#3-khởi-tạo-cơ-sở-dữ-liệu-migrations)
-  - [4. Build và Chạy ứng dụng](#4-build-và-chạy-ứng-dụng)
-- [Cấu hình môi trường & Port](#-cấu-hình-môi-trường--port)
-- [Đóng góp & Giấy phép](#-đóng-góp--giấy-phép)
+Dự án Web ứng dụng được phát triển bằng nền tảng **ASP.NET Core MVC**, tuân thủ các quy chuẩn thiết kế phần mềm hiện đại, kiến trúc phân tầng rõ ràng và tích hợp cơ chế xác thực dữ liệu chặt chẽ từ máy khách đến máy chủ.
 
 ---
 
-## 📖 Giới thiệu
-
-`KTGK_LapTrinhWeb` là đồ án thực hành kiến trúc ứng dụng web hướng đối tượng, xử lý luồng nghiệp vụ thông qua mô hình Model-View-Controller (MVC) của Microsoft:
-- **Tách bạch mối quan tâm (Separation of Concerns)** giữa dữ liệu (Model), giao diện (View) và logic điều hướng (Controller).
-- **Trải nghiệm giao diện thân thiện (UI/UX)**: Tối ưu hiển thị responsive, tích hợp CSS/JS tùy biến và kiểm tra hợp lệ dữ liệu (Client-side & Server-side Validation).
-
----
-
-## 💻 Công nghệ sử dụng
-
-- **Backend**:
-  - Ngôn ngữ: C#
-  - Framework: .NET (ASP.NET Core MVC)
-  - ORM: Entity Framework Core
-- **Frontend**:
-  - Razor View Engine (`.cshtml`)
-  - HTML5, CSS3, JavaScript
-  - Thư viện: Bootstrap, jQuery, jQuery Validation & Unobtrusive Validation
-- **Cơ sở dữ liệu**:
-  - Microsoft SQL Server / SQL Server LocalDB
+## 📚 Mục Lục
+- [1. Tính Năng & Công Nghệ](#1-tính-năng--công-nghệ)
+- [2. Kiến Trúc Dự Án](#2-kiến-trúc-dự-án)
+- [3. Cấu Trúc Thư Mục](#3-cấu-trúc-thư-mục)
+- [4. Yêu Cầu Hệ Thống & Cài Đặt](#4-yêu-cầu-hệ-thống--cài-đặt)
+- [5. Hướng Dẫn Khởi Chạy](#5-hướng-dẫn-khởi-chạy)
+- [6. Kiểm Thử (Testing)](#6-kiểm-thử-testing)
+- [7. Quy Chuẩn Đóng Góp (Contributing)](#7-quy-chuẩn-đóng-góp-contributing)
+- [8. Bản Quyền & Giấy Phép](#8-bản-quyền--giấy-phép)
 
 ---
 
-## 🏛 Cấu trúc thư mục & Kiến trúc MVC
+## 1. Tính Năng & Công Nghệ
 
-Dự án tuân thủ chuẩn cấu trúc của ứng dụng ASP.NET Core MVC:
+### Công Nghệ Sử Dụng:
+- **Backend**: C#, ASP.NET Core MVC (Model-View-Controller pattern).
+- **Frontend**: Razor View Engine, HTML5, CSS3, JavaScript.
+- **Thư viện UI & Utilities**: Bootstrap 5, jQuery.
+- **Client-Side Validation**: jQuery Validation & jQuery Validation Unobtrusive.
+- **Dependency Injection**: Tích hợp sẵn trong ASP.NET Core Service Container.
+- **Kiểm thử**: Bộ kịch bản kiểm thử tự động tại thư mục `tests/`.
 
-```text
+---
+
+## 2. Kiến Trúc Dự Án
+
+Hệ thống hoạt động theo mô hình **Model-View-Controller (MVC)** với các nguyên tắc:
+1. **Controller**: Đóng vai trò điều hướng, tiếp nhận HTTP Request, xử lý xác thực đầu vào và điều phối dữ liệu.
+2. **Model / ViewModel**: Đại diện cho thực thể dữ liệu và các ràng buộc dữ liệu (Data Annotations).
+3. **View**: Định dạng và kết xuất giao diện trực quan thông qua Razor Engine.
+4. **Middleware Pipeline**: Quản lý tài nguyên tĩnh (`wwwroot`), routing, xử lý ngoại lệ và bảo mật.
+
+👉 **Xem chi tiết tài liệu kiến trúc kỹ thuật tại:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+---
+
+## 3. Cấu Trúc Thư Mục
+
+```
 KTGK_LapTrinhWeb/
-├── Controllers/                 # Điều khiển luồng request và trả về View/Data
-│   └── HomeController.cs        # Controller mặc định xử lý trang chủ và các tác vụ chung
-├── Models/                      # Thực thể dữ liệu (Entities) và ViewModels
-│   └── ErrorViewModel.cs        # Model xử lý và truyền dữ liệu lỗi
-├── Views/                       # Giao diện hiển thị (Razor Views)
-│   ├── Home/                    # Các View thuộc HomeController (Index, Privacy, ...)
-│   ├── Shared/                  # Giao diện dùng chung
-│   │   ├── _Layout.cshtml       # Master layout chính cho toàn ứng dụng
-│   │   ├── _Layout.cshtml.css   # Scoped CSS cho Layout
-│   │   └── _ValidationScriptsPartial.cshtml
-│   ├── _ViewImports.cshtml      # Import namespaces và tag helpers cho toàn bộ Views
-│   └── _ViewStart.cshtml        # Cấu hình layout mặc định cho Views
-├── wwwroot/                     # Tài nguyên tĩnh (Static Files)
-│   ├── css/                     # File stylesheet tùy biến (site.css)
-│   ├── js/                      # File JavaScript tùy biến (site.js)
-│   └── lib/                     # Thư viện client bên thứ ba (Bootstrap, jQuery, v.v.)
-├── Properties/
-│   └── launchSettings.json      # Cấu hình môi trường dev, profile và ports
-├── appsettings.json             # Cấu hình chính (Connection Strings, App Settings)
-├── appsettings.Development.json # Cấu hình ghi đè cho môi trường Development
-├── Program.cs                   # Điểm khởi động (Entry point), cấu hình DI container và Middleware pipeline
-└── README.md                    # Tài liệu hướng dẫn đồ án
-```
-
-### Chi tiết các thành phần chính:
-1. **Controllers**: Tiếp nhận HTTP requests từ client, gọi tầng dữ liệu/nghiệp vụ và chọn View phù hợp để hiển thị dữ liệu cho người dùng.
-2. **Models**: Chứa các lớp đại diện cho cấu trúc dữ liệu trong cơ sở dữ liệu, tham số nghiệp vụ và các ViewModels phục vụ hiển thị/nhập liệu.
-3. **Views**: Các file `.cshtml` kết hợp giữa mã HTML và cú pháp C# Razor để sinh mã HTML trả về trình duyệt.
-4. **wwwroot**: Chứa mã nguồn client tĩnh (CSS, JavaScript, hình ảnh, vendor libraries) được phục vụ trực tiếp tới client.
-5. **Program.cs**: Cấu hình các dịch vụ (Services / Dependency Injection), chuỗi kết nối DbContext và thiết lập Middleware (Routing, StaticFiles, Authentication/Authorization).
-
----
-
-## ⚙ Yêu cầu hệ thống
-
-Trước khi chạy dự án, hãy đảm bảo máy tính đã cài đặt các công cụ sau:
-- [.NET SDK](https://dotnet.microsoft.com/download) (Khuyên dùng .NET 8.0 SDK hoặc phiên bản tương thích)
-- [Visual Studio 2022](https://visualstudio.microsoft.com/) (với workload *ASP.NET and web development*) hoặc [Visual Studio Code](https://code.visualstudio.com/) (với extension C# Dev Kit)
-- [Microsoft SQL Server](https://www.microsoft.com/en-us/sql-server) hoặc SQL Server Express / LocalDB
-
-Kiểm tra phiên bản .NET SDK bằng dòng lệnh:
-```bash
-dotnet --version
+├── Controllers/          # Các Controller tiếp nhận và xử lý Request
+├── Models/               # Định nghĩa Model thực thể và ViewModel
+├── Views/                # Các file giao diện Razor (.cshtml)
+│   ├── Home/             # Giao diện theo từng Controller
+│   └── Shared/           # Giao diện dùng chung (_Layout, Partials)
+├── wwwroot/              # Tài nguyên tĩnh công khai (CSS, JS, Libs)
+│   ├── css/              # Stylesheet hệ thống
+│   ├── js/               # Kịch bản JavaScript
+│   └── lib/              # Thư viện ngoài (Bootstrap, jQuery,...)
+├── Properties/           # Cấu hình môi trường khởi chạy (launchSettings.json)
+├── docs/                 # Tài liệu kỹ thuật chi tiết
+│   └── ARCHITECTURE.md   # Tài liệu kiến trúc hệ thống
+├── tests/                # Bộ kịch bản kiểm thử
+├── appsettings.json      # File cấu hình ứng dụng
+├── CONTRIBUTING.md       # Hướng dẫn quy chuẩn đóng góp & code
+└── README.md             # Tài liệu tổng quan dự án
 ```
 
 ---
 
-## 🚀 Hướng dẫn cài đặt và chạy đồ án
+## 4. Yêu Cầu Hệ Thống & Cài Đặt
 
-### 1. Clone mã nguồn
-Mở terminal và clone repository về máy cục bộ:
+Trước khi bắt đầu, hãy đảm bảo máy tính đã cài đặt:
+- [.NET SDK](https://dotnet.microsoft.com/download) (Khuyến nghị bản tương thích với dự án, ví dụ: .NET 6.0, 7.0 hoặc 8.0 trở lên).
+- Trình biên dịch: Visual Studio 2022, Visual Studio Code (kèm C# Dev Kit), hoặc JetBrains Rider.
+- [Git](https://git-scm.com/).
+
+---
+
+## 5. Hướng Dẫn Khởi Chạy
+
+### Bước 1: Sao chép mã nguồn
 ```bash
 git clone https://github.com/nhathoangnguyen1748/KTGK_LapTrinhWeb.git
 cd KTGK_LapTrinhWeb
 ```
 
-### 2. Cấu hình chuỗi kết nối cơ sở dữ liệu
-Mở file `appsettings.json` và cấu hình chuỗi kết nối phù hợp với SQL Server cục bộ của bạn:
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=KTGK_LapTrinhWeb_Db;Trusted_Connection=True;MultipleActiveResultSets=true"
-  },
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft.AspNetCore": "Warning"
-    }
-  },
-  "AllowedHosts": "*"
-}
-```
-*(Lưu ý: Điều chỉnh `Server` hoặc thông tin đăng nhập `User Id`/`Password` nếu bạn dùng SQL Server Authentication)*.
-
-### 3. Khởi tạo Cơ sở Dữ liệu (Migrations)
-Nếu đồ án có sử dụng Entity Framework Core Migrations, thực thi lệnh sau để cập nhật database:
+### Bước 2: Khôi phục dependencies
 ```bash
-# Cài đặt công cụ dotnet-ef (nếu chưa có)
-dotnet tool install --global dotnet-ef
-
-# Cập nhật schema vào database
-dotnet ef database update
+dotnet restore
 ```
 
-### 4. Build và Chạy ứng dụng
+### Bước 3: Biên dịch dự án
+```bash
+dotnet build
+```
 
-#### Lựa chọn A: Sử dụng .NET CLI (Khuyên dùng)
-1. Restore các package NuGet:
-   ```bash
-   dotnet restore
-   ```
-2. Biên dịch dự án:
-   ```bash
-   dotnet build
-   ```
-3. Chạy ứng dụng:
-   ```bash
-   dotnet run
-   ```
+### Bước 4: Khởi chạy dự án
+```bash
+dotnet run
+```
 
-#### Lựa chọn B: Sử dụng Visual Studio 2022
-1. Mở file giải pháp (`.sln`) hoặc thư mục dự án bằng Visual Studio 2022.
-2. Đợi Visual Studio tự động khôi phục các NuGet Packages.
-3. Nhấn **F5** (hoặc nút **Start Debugging** / **Start Without Debugging** - `Ctrl + F5`).
+Sau khi khởi chạy thành công, mở trình duyệt và truy cập vào URL hiển thị trên terminal (thường là `https://localhost:5001` hoặc `http://localhost:5000` tùy theo `launchSettings.json`).
 
 ---
 
-## 🌐 Cấu hình môi trường & Port
+## 6. Kiểm Thử (Testing)
 
-Sau khi khởi chạy ứng dụng thành công, terminal sẽ thông báo địa chỉ truy cập cục bộ (được cấu hình trong `Properties/launchSettings.json`):
-- **HTTPS**: `https://localhost:7xxx` hoặc `https://localhost:5001`
-- **HTTP**: `http://localhost:5xxx` hoặc `http://localhost:5000`
+Dự án tích hợp các kịch bản kiểm thử nhằm đảm bảo tính toàn vẹn của hệ thống:
+```bash
+# Chạy các bài kiểm thử .NET (nếu có dự án test xUnit/NUnit)
+dotnet test
 
-Mở trình duyệt web và truy cập vào đường dẫn trên để trải nghiệm ứng dụng.
+# Chạy kịch bản kiểm thử tính năng hỗ trợ
+python3 -m unittest discover tests/
+```
 
 ---
 
-## 👨‍💻 Đóng góp & Giấy phép
+## 7. Quy Chuẩn Đóng Góp (Contributing)
 
-- **Tác giả đồ án**: [nhathoangnguyen1748](https://github.com/nhathoangnguyen1748)
-- **Môn học**: Lập trình Web - Kiểm tra giữa kỳ (KTGK)
-- **Mục đích**: Học tập, nghiên cứu và phát triển kỹ năng lập trình web ASP.NET Core MVC.
+Chúng tôi luôn chào đón mọi đóng góp phát triển hệ thống! Xin vui lòng đọc kỹ quy tắc trước khi gửi Pull Request:
+- **Quy chuẩn commit**: Chuẩn [Conventional Commits](https://www.conventionalcommits.org/) (`feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`).
+- **Quy trình nhánh**: Làm việc trên nhánh `feature/*` hoặc `bugfix/*` tách từ `develop`.
+- **Quy chuẩn mã nguồn**: Tuân thủ quy tắc đặt tên C# (PascalCase, camelCase) và cấu trúc Skinny Controller.
+
+👉 **Xem hướng dẫn chi tiết tại:** [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
+## 8. Bản Quyền & Giấy Phép
+
+Dự án được phân phối dưới giấy phép MIT License. Chi tiết xem tại tập tin `LICENSE` (nếu có).
