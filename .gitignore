@@ -12,3 +12,13 @@ appsettings.*.local.json
 
 TestResults/
 coverage/
+
+# Security exclusions
+.env
+.env.*
+*.pem
+*.key
+*.cert
+id_rsa*
+__pycache__
+*.pyc
