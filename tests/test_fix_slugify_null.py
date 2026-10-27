@@ -1,6 +1,36 @@
 import os
 import re
-import pytest
+try:
+    import pytest
+except ImportError:
+    class _PytestRaisesContext:
+        def __init__(self, expected_exc):
+            self.expected_exc = expected_exc
+            self.value = None
+        def __enter__(self):
+            return self
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            if exc_type is None:
+                raise AssertionError(f"Expected {self.expected_exc}, but no exception was raised")
+            self.value = exc_val
+            return issubclass(exc_type, self.expected_exc)
+        def __str__(self):
+            return str(self.value)
+
+    class _PytestMark:
+        def __getattr__(self, name):
+            return lambda *args, **kwargs: (lambda f: f)
+        def __call__(self, *args, **kwargs):
+            return lambda f: f
+
+    class _PytestMock:
+        raises = _PytestRaisesContext
+        mark = _PytestMark()
+        @staticmethod
+        def fixture(*args, **kwargs):
+            return lambda f: f
+
+    pytest = _PytestMock()
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 STRING_HELPER_PATH = os.path.join(ROOT_DIR, "Models", "StringHelper.cs")
