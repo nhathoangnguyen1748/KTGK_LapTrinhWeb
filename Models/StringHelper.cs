@@ -5,40 +5,30 @@ using System.Text.RegularExpressions;
 
 namespace KTGK_LapTrinhWeb.Models
 {
-    /// <summary>
-    /// Tiện ích xử lý chuỗi và định dạng dữ liệu cho ứng dụng.
-    /// </summary>
     public static class StringHelper
     {
         /// <summary>
-        /// Định dạng tiền tệ Việt Nam (ví dụ 100000 -> "100.000 ₫").
+        /// Định dạng số tiền thành chuỗi tiền tệ Việt Nam Đồng (VND).
+        /// Ví dụ: 100000 -> "100.000 ₫"
         /// </summary>
         /// <param name="amount">Số tiền cần định dạng.</param>
-        /// <returns>Chuỗi định dạng tiền tệ VND kèm ký hiệu ₫.</returns>
+        /// <returns>Chuỗi tiền tệ đã định dạng kèm ký hiệu ₫.</returns>
         public static string FormatCurrencyVnd(decimal amount)
         {
             var culture = new CultureInfo("vi-VN");
-            var nfi = (NumberFormatInfo)culture.NumberFormat.Clone();
-            nfi.NumberGroupSeparator = ".";
-            nfi.CurrencyGroupSeparator = ".";
-            nfi.CurrencySymbol = "₫";
-            return $"{amount.ToString("#,##0", nfi)} ₫";
+            return $"{amount.ToString("#,##0", culture)} ₫";
         }
 
         /// <summary>
-        /// Rút gọn chuỗi an toàn nếu vượt quá maxLength, kèm dấu "...".
+        /// Rút gọn chuỗi văn bản theo độ dài tối đa và gắn kèm dấu ba chấm "...".
+        /// Trả về string.Empty nếu chuỗi null, rỗng hoặc maxLength <= 0.
         /// </summary>
         /// <param name="text">Chuỗi văn bản cần rút gọn.</param>
-        /// <param name="maxLength">Số lượng ký tự tối đa giữ lại.</param>
-        /// <returns>Chuỗi đã rút gọn kèm "..." hoặc chuỗi ban đầu nếu không vượt quá maxLength.</returns>
+        /// <param name="maxLength">Độ dài tối đa của chuỗi.</param>
+        /// <returns>Chuỗi đã rút gọn hoặc chuỗi ban đầu nếu ngắn hơn maxLength.</returns>
         public static string Truncate(string text, int maxLength)
         {
-            if (string.IsNullOrEmpty(text))
-            {
-                return string.Empty;
-            }
-
-            if (maxLength <= 0)
+            if (string.IsNullOrEmpty(text) || maxLength <= 0)
             {
                 return string.Empty;
             }
@@ -52,41 +42,51 @@ namespace KTGK_LapTrinhWeb.Models
         }
 
         /// <summary>
-        /// Chuyển đổi tiêu đề tiếng Việt có dấu thành slug URL không dấu dạng kebab-case.
+        /// Chuyển đổi chuỗi văn bản thành slug URL-friendly.
+        /// Trả về string.Empty nếu đầu vào là null, rỗng hoặc chỉ chứa khoảng trắng.
         /// </summary>
-        /// <param name="text">Chuỗi tiêu đề tiếng Việt cần chuyển đổi.</param>
-        /// <returns>Chuỗi slug không dấu dạng kebab-case.</returns>
+        /// <param name="text">Chuỗi văn bản cần chuyển đổi.</param>
+        /// <returns>Chuỗi slug chuẩn hóa hoặc string.Empty.</returns>
         public static string Slugify(string text)
         {
+            // Guard clause: xử lý null, rỗng hoặc chuỗi chỉ chứa khoảng trắng
             if (string.IsNullOrWhiteSpace(text))
             {
                 return string.Empty;
             }
 
-            // Xử lý riêng ký tự đ/Đ do Unicode FormD không tách dấu gạch ngang của chữ đ
-            string slug = text.Replace('đ', 'd').Replace('Đ', 'd');
+            // Chuyển sang chữ thường
+            string str = text.ToLowerInvariant();
 
-            // Chuẩn hóa FormD để tách dấu thanh/dấu phụ ra khỏi nguyên âm
-            string normalizedString = slug.Normalize(NormalizationForm.FormD);
-            var stringBuilder = new StringBuilder();
+            // Tách dấu tiếng Việt bằng Unicode FormD
+            string normalized = str.Normalize(NormalizationForm.FormD);
+            StringBuilder sb = new StringBuilder();
 
-            foreach (char c in normalizedString)
+            foreach (char c in normalized)
             {
-                var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
-                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+                UnicodeCategory uc = CharUnicodeInfo.GetUnicodeCategory(c);
+                if (uc != UnicodeCategory.NonSpacingMark)
                 {
-                    stringBuilder.Append(c);
+                    sb.Append(c);
                 }
             }
 
-            // Tái hợp chuỗi về FormC và chuyển thành chữ thường
-            string cleanString = stringBuilder.ToString().Normalize(NormalizationForm.FormC).ToLowerInvariant();
+            string result = sb.ToString().Normalize(NormalizationForm.FormC);
 
-            // Thay thế tất cả ký tự không phải chữ cái và số bằng dấu gạch ngang
-            cleanString = Regex.Replace(cleanString, @"[^a-z0-9]+", "-");
+            // Thay thế ký tự đặc thù tiếng Việt đ/Đ
+            result = Regex.Replace(result, "[đĐ]", "d");
 
-            // Xóa các dấu gạch ngang thừa ở đầu và cuối chuỗi
-            return cleanString.Trim('-');
+            // Loại bỏ các ký tự không phải chữ cái thường, số, khoảng trắng hoặc dấu gạch ngang
+            result = Regex.Replace(result, @"[^a-z0-9\s-]", "");
+
+            // Thay thế khoảng trắng bằng dấu gạch ngang
+            result = Regex.Replace(result, @"\s+", "-");
+
+            // Loại bỏ các ký tự gạch ngang liên tiếp '--' thành '-'
+            result = Regex.Replace(result, @"-+", "-");
+
+            // Xóa gạch ngang ở đầu và cuối chuỗi
+            return result.Trim('-');
         }
     }
 }
